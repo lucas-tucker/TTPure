@@ -119,14 +119,24 @@ If you use this codebase or a part of this codebase, please cite our relevant wo
 Muting Whisper work published at EMNLP 2024.
 
 ```bibtex
-@misc{raina2024mutingwhisperuniversalacoustic,
-      title={Muting Whisper: A Universal Acoustic Adversarial Attack on Speech Foundation Models}, 
-      author={Vyas Raina and Rao Ma and Charles McGhee and Kate Knill and Mark Gales},
-      year={2024},
-      eprint={2405.06134},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2405.06134}, 
+@inproceedings{raina-etal-2024-muting,
+    title = "Muting Whisper: A Universal Acoustic Adversarial Attack on Speech Foundation Models",
+    author = "Raina, Vyas  and
+      Ma, Rao  and
+      McGhee, Charles  and
+      Knill, Kate  and
+      Gales, Mark",
+    editor = "Al-Onaizan, Yaser  and
+      Bansal, Mohit  and
+      Chen, Yun-Nung",
+    booktitle = "Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing",
+    month = nov,
+    year = "2024",
+    address = "Miami, Florida, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.emnlp-main.430/",
+    doi = "10.18653/v1/2024.emnlp-main.430",
+    pages = "7549--7565"
 }
 ```
 
