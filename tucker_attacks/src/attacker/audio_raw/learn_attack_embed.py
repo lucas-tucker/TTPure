@@ -48,7 +48,9 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
         self.audio_attack_model.train()
 
         for i, (audio) in enumerate(train_loader):
+            # print(audio.shape)
             audio = audio[0].to(self.device)
+            print(audio.shape)
 
             # Forward pass
             logits = self.audio_attack_model(audio, self.whisper_model)[:,-1,:].squeeze(dim=1)
@@ -100,10 +102,20 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
         dl = DataLoader(ds, batch_size=bs, shuffle=shuffle, num_workers=0)
         return dl
 
+    def _get_tgt_tkn_id(self):
+        if self.attack_args.attack_token == 'eot':
+            try:
+                eot_id =  self.whisper_model.tokenizer.eot
+            except:
+                # canary model
+                eot_id = self.whisper_model.tokenizer.eos_id
+            return eot_id
+        elif self.attack_args.attack_token == 'transcribe':
+            return self.whisper_model.tokenizer.transcribe
 
-    def train_process(self, train_data):
+    def train_process(self, train_data, cache_dir):
 
-        # fpath = f'{cache_dir}/prepend_attack_models'
+        fpath = f'{cache_dir}/prepend_attack_models'
         # if not os.path.isdir(fpath):
         #     os.mkdir(fpath)
 
@@ -115,12 +127,12 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
             print('current lr {:.5e}'.format(self.optimizer.param_groups[0]['lr']))
             self.train_step(train_dl, epoch)
 
-            # if epoch==self.attack_args.max_epochs-1 or (epoch+1)%self.attack_args.save_freq==0:
-            #     # save model at this epoch
-            #     if not os.path.isdir(f'{fpath}/epoch{epoch+1}'):
-            #         os.mkdir(f'{fpath}/epoch{epoch+1}')
-            #     state = self.audio_attack_model.state_dict()
-            #     torch.save(state, f'{fpath}/epoch{epoch+1}/model.th')
+            if epoch==self.attack_args.max_epochs-1 or (epoch+1)%self.attack_args.save_freq==0:
+                # save model at this epoch
+                if not os.path.isdir(f'{fpath}/epoch{epoch+1}'):
+                    os.mkdir(f'{fpath}/epoch{epoch+1}')
+                state = self.audio_attack_model.state_dict()
+                torch.save(state, f'{fpath}/epoch{epoch+1}/model.th')
 
 
 

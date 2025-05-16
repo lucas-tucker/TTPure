@@ -10,6 +10,8 @@ import torch.nn as nn
 from tqdm import tqdm
 import json
 import whisper
+import glob
+from src.models.whisper import WhisperModel, WhisperModelEnsemble
 
 from src.tools.args import core_args, attack_args
 from src.data.load_data import load_data
@@ -46,10 +48,20 @@ if __name__ == "__main__":
 
     # load training data
     # data, _ = load_data(core_args)
+    base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean"
+
+    # Use glob to recursively find all .flac files
+    flac_files = glob.glob(os.path.join(base_dir, "**", "**", "*.flac"), recursive=True)
+
+    print(f"flac_files is of type {type(flac_files)}")
+    print(f"size of flac_files is {len(flac_files)}")
+    # # Create the list of dictionaries
+    # data = [{"audio": path} for path in flac_files]
+    # print(f"data size is {len(data)}")
     data = [{"audio": "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean/251/137823/251-137823-0000.flac"}]
 
     # load model
-    model = whisper.load_model("tiny") # load_model(core_args, device=device)
+    model = WhisperModel(core_args.model_name[0], device=device, task=core_args.task, language=core_args.language) # load_model(core_args, device=device)
     attacker = select_train_attacker(attack_args, core_args, model, device=device)
-    attacker.train_process(data)
+    attacker.train_process(data, "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/tucker_saved_segments")
     
