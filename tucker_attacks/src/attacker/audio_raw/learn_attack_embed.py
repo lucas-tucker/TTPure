@@ -101,12 +101,13 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
         return dl
 
 
-    def train_process(self, train_data, cache_dir):
+    def train_process(self, train_data):
 
         # fpath = f'{cache_dir}/prepend_attack_models'
         # if not os.path.isdir(fpath):
         #     os.mkdir(fpath)
 
+        # train_data needs to be list of dictionaries each with "audio": audio_file_path
         train_dl = self._prep_dl(train_data, bs=self.attack_args.bs, shuffle=True)
 
         for epoch in range(self.attack_args.max_epochs):

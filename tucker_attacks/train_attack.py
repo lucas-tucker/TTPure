@@ -9,10 +9,11 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import json
+import whisper
 
 from src.tools.args import core_args, attack_args
 from src.data.load_data import load_data
-from src.models.load_model import load_model
+# from src.models.load_model import load_model
 # from src.tools.tools import get_default_device, set_seeds
 from src.attacker.selector import select_train_attacker
 # from src.tools.saving import base_path_creator, attack_base_path_creator_train
@@ -44,10 +45,11 @@ if __name__ == "__main__":
     device = "cpu"
 
     # load training data
-    data, _ = load_data(core_args)
+    # data, _ = load_data(core_args)
+    data = [{"audio": "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean/251/137823/251-137823-0000.flac"}]
 
     # load model
-    model = load_model(core_args, device=device)
+    model = whisper.load_model("tiny") # load_model(core_args, device=device)
     attacker = select_train_attacker(attack_args, core_args, model, device=device)
-    attacker.train_process(data, "arbitrary")
+    attacker.train_process(data)
     

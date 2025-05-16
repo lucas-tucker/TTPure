@@ -102,6 +102,7 @@ class AudioAttack(AudioBaseAttacker):
         if not os.path.isdir(fpath):
             os.mkdir(fpath)
 
+        # data needs to be a list of dictionaries each with "audio": file path to audio
         train_dl = self._prep_dl(train_data, bs=self.attack_args.bs, shuffle=True)
 
         for epoch in range(self.attack_args.max_epochs):
