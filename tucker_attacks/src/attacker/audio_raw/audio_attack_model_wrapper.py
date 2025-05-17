@@ -13,7 +13,7 @@ class AudioAttackModelWrapper(nn.Module):
         self.device = device
         self.multiple_model_attack = False
 
-        self.sot_ids = self.tokenizer.sot_sequence_including_notimestamps
+        self.sot_ids = self.tokenizer.sot_sequence_including_notimestamps # self.tokenizer.sot_sequence # self.tokenizer.sot_sequence_including_notimestamps
         self.len_sot_ids = len(torch.tensor(self.sot_ids))
 
         if attack_init == 'random':
@@ -77,6 +77,18 @@ class AudioAttackModelWrapper(nn.Module):
                 pred_probs.append(sf(model.forward(mel, decoder_input_ids)))
             return torch.mean(torch.stack(pred_probs), dim=0) 
         else:
+            ######### ADD THE 5 SECOND TOKEN AS THE LAST LOGIT SLICE FROM THE OUTPUT #########
+            # new_tokens = [7835, 538, 3693, 538, 436, 1361, 281, 452, 1159, 11]
+            new_tokens = [583, 538]
+            # new_token = 50364
+            # # new_tokens = [50364, 583, 538, 293, 538, 436, 1361, 281, 452, 1159, 11, 597, 286, 632, 7633, 1314, 294, 264, 7714]
+            for new_token in new_tokens:
+            # new_token = 50514 # This is the 3 second token
+                new_token_tensor = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
+                decoder_input_ids = torch.cat((decoder_input_ids, new_token_tensor), dim=1)
+            # decoder_input_ids = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
+            # print(decoder_input_ids.shape)
+            ######### END OF ALTERED CODE #########
             return whisper_model.model.forward(mel, decoder_input_ids)
     
     def transcribe(self,

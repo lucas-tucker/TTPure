@@ -35,6 +35,7 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
         sf = nn.Softmax(dim=1)
         log_probs = torch.log(sf(logits))
         tgt_probs = log_probs[:,tgt_id].squeeze()
+        # print(f"tgt_probs is {tgt_probs}")
         return -1*torch.mean(tgt_probs)
     
 
@@ -48,12 +49,19 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
         self.audio_attack_model.train()
 
         for i, (audio) in enumerate(train_loader):
-            # print(audio.shape)
             audio = audio[0].to(self.device)
-            print(audio.shape)
 
             # Forward pass
-            logits = self.audio_attack_model(audio, self.whisper_model)[:,-1,:].squeeze(dim=1)
+            tmp_logits = self.audio_attack_model(audio, self.whisper_model)
+            # print(tmp_logits.shape)
+            print(torch.argmax(tmp_logits[:, -1, :].squeeze()))
+            # print()
+            # print(tmp_logits.shape)
+            # Grab the last of the tokens to focus on
+            logits = tmp_logits[:,-1,:].squeeze(dim=1)
+            # print(logits.shape)
+            # print()
+            # logits = self.audio_attack_model(audio, self.whisper_model)[:,-1,:].squeeze(dim=1)
             loss = self._loss(logits)
 
             # Backward pass and update
@@ -105,7 +113,8 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
     def _get_tgt_tkn_id(self):
         if self.attack_args.attack_token == 'eot':
             try:
-                eot_id =  self.whisper_model.tokenizer.eot
+                eot_id = self.whisper_model.tokenizer.eot
+                # print(f"EOT ID IS {eot_id}")
             except:
                 # canary model
                 eot_id = self.whisper_model.tokenizer.eos_id
