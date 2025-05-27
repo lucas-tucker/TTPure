@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 from whisper.audio import log_mel_spectrogram, pad_or_trim, N_SAMPLES, N_FRAMES, load_audio
 
 class AudioAttackModelWrapper(nn.Module):
@@ -20,12 +21,17 @@ class AudioAttackModelWrapper(nn.Module):
             self.audio_attack_segment = nn.Parameter(torch.rand(attack_size))
         else:
             # load init attack from attack_init path
-            loaded_params = torch.load(attack_init)
-            if 'audio_attack_segment' in loaded_params:
-                initial_value = loaded_params['audio_attack_segment']
-                self.audio_attack_segment = nn.Parameter(initial_value.to(device))
-            else:
-                raise ValueError("Invalid attack_init path provided.")
+            # loaded_params = torch.load(attack_init)
+            # Comment out this loading for now since assumes th format is given
+
+            # if 'audio_attack_segment' in loaded_params:
+            #     initial_value = loaded_params['audio_attack_segment']
+            #     self.audio_attack_segment = nn.Parameter(initial_value.to(device))
+            # else:
+            #     raise ValueError("Invalid attack_init path provided.")
+            init_segment = np.load(attack_init)
+            init_segment_tensor = torch.from_numpy(init_segment).to(device)
+            self.audio_attack_segment = nn.Parameter(init_segment_tensor)
     
     def forward(self, audio_vector, whisper_model, decoder_input=None):
         '''
@@ -36,7 +42,16 @@ class AudioAttackModelWrapper(nn.Module):
         '''
         # prepend attack segment
         X = self.audio_attack_segment.unsqueeze(0).expand(audio_vector.size(0), -1)
-        attacked_audio_vector = torch.cat((X, audio_vector), dim=1)
+        ### EXPERIMENT ####
+        # We fix a cutoff size to segment the audio vector
+        cutoff = 30000 # len(audio_vector[0])
+        # print(f"audio vector is itself of shape {audio_vector.shape}")
+        attacked_audio_vector = torch.cat((audio_vector[:, :cutoff//2], X, audio_vector[:, cutoff//2:]), dim=1)
+        # print(f"attacked audio vector is of shape {attacked_audio_vector.shape}")
+        ### END OF EXPERIMENT ###
+
+        # attacked_audio_vector = torch.cat((X, audio_vector), dim=1)
+        # attacked_audio_vector = torch.cat((audio_vector, X), dim=1)
 
         # forward pass through full model
         mel = self._audio_to_mel(attacked_audio_vector, whisper_model)
@@ -53,7 +68,14 @@ class AudioAttackModelWrapper(nn.Module):
         else:
             n_mels = whisper_model.model.dims.n_mels
         padded_mel = log_mel_spectrogram(audio, n_mels, padding=N_SAMPLES)
+        # ADDED EXPERIMENT
+        seek = 0
+        segment_size = 800
+        padded_mel = padded_mel[:, :, seek : seek + segment_size]
+        # print(f"truncated mel size is {padded_mel.shape}")
+        # END OF EXP
         mel = pad_or_trim(padded_mel, N_FRAMES)
+        # mel = padded_mel
         return mel
     
     def _mel_to_logit(self, mel: torch.Tensor, whisper_model, decoder_input=None):
@@ -79,15 +101,15 @@ class AudioAttackModelWrapper(nn.Module):
         else:
             ######### ADD THE 5 SECOND TOKEN AS THE LAST LOGIT SLICE FROM THE OUTPUT #########
             # new_tokens = [7835, 538, 3693, 538, 436, 1361, 281, 452, 1159, 11]
-            new_tokens = [583, 538]
+            new_tokens = []
             # new_token = 50364
-            # # new_tokens = [50364, 583, 538, 293, 538, 436, 1361, 281, 452, 1159, 11, 597, 286, 632, 7633, 1314, 294, 264, 7714]
+            new_tokens = [50364]
             for new_token in new_tokens:
             # new_token = 50514 # This is the 3 second token
                 new_token_tensor = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
                 decoder_input_ids = torch.cat((decoder_input_ids, new_token_tensor), dim=1)
             # decoder_input_ids = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
-            # print(decoder_input_ids.shape)
+            # print(f"decoder_input_ids are {decoder_input_ids}")
             ######### END OF ALTERED CODE #########
             return whisper_model.model.forward(mel, decoder_input_ids)
     

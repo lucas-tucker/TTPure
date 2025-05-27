@@ -54,7 +54,7 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
             # Forward pass
             tmp_logits = self.audio_attack_model(audio, self.whisper_model)
             # print(tmp_logits.shape)
-            print(torch.argmax(tmp_logits[:, -1, :].squeeze()))
+            # print(f"argmax value is {torch.argmax(tmp_logits[:, -1, :].squeeze())}")
             # print()
             # print(tmp_logits.shape)
             # Grab the last of the tokens to focus on
@@ -113,8 +113,9 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
     def _get_tgt_tkn_id(self):
         if self.attack_args.attack_token == 'eot':
             try:
+                # NOTE: Place arbitrary token here  
+                # eot_id = 19186 # self.whisper_model.tokenizer.eot
                 eot_id = self.whisper_model.tokenizer.eot
-                # print(f"EOT ID IS {eot_id}")
             except:
                 # canary model
                 eot_id = self.whisper_model.tokenizer.eos_id

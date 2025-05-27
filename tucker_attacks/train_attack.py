@@ -50,16 +50,18 @@ if __name__ == "__main__":
     # data, _ = load_data(core_args)
     base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean"
     cache_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/tucker_saved_segments"
+    saved_universal_prepend_init_segment = "/Users/lucastucker/base.np.npy"
 
     # Use glob to recursively find all .flac files
     flac_files = glob.glob(os.path.join(base_dir, "**", "**", "*.flac"), recursive=True)
 
-    # print(f"flac_files is of type {type(flac_files)}")
-    # print(f"size of flac_files is {len(flac_files)}")
-    # # # Create the list of dictionaries
-    # data = [{"audio": path} for path in flac_files[:1]]
-    data = [{"audio": "/Users/lucastucker/embed_sample.flac"}]
-    print(data)
+    # NOTE that batching is currently not supported!
+    training_data_size = 200
+    data = [{"audio": path} for path in flac_files[:training_data_size]]
+    print(f"attack args are {attack_args}")
+    # data = [{"audio": "/Users/lucastucker/book_audio.flac"}]
+    # data = [{"audio": "/Users/lucastucker/lucas.flac"}]
+    # print(data)
     # print(f"data size is {len(data)}")
     # data = [{"audio": "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean/251/137823/251-137823-0000.flac"}]
     # data = [{"audio": "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/data/LibriSpeech/dev-clean/3576/138058/3576-138058-0000.flac"}]
