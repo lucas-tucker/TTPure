@@ -56,7 +56,7 @@ if __name__ == "__main__":
     flac_files = glob.glob(os.path.join(base_dir, "**", "**", "*.flac"), recursive=True)
 
     # NOTE that batching is currently not supported!
-    training_data_size = 200
+    training_data_size = 2
     data = [{"audio": path} for path in flac_files[:training_data_size]]
     print(f"attack args are {attack_args}")
     # data = [{"audio": "/Users/lucastucker/book_audio.flac"}]
