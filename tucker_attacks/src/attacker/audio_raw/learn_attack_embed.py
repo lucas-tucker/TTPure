@@ -53,6 +53,7 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
 
             # Forward pass
             tmp_logits = self.audio_attack_model(audio, self.whisper_model)
+            print(f"logits have shape {tmp_logits.shape}")
             # print(tmp_logits.shape)
             # print(f"argmax value is {torch.argmax(tmp_logits[:, -1, :].squeeze())}")
             # print()
