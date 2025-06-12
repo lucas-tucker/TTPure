@@ -44,20 +44,33 @@ if __name__ == "__main__":
     # else:
     #     device = get_default_device(core_args.gpu_id)
     # print(f"device is {device}")
-    device = "cpu"
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        device = "cuda"
+    else:
+        device = "cpu"
+    print(f"Using device: {device}")
 
     # load training data
     # data, _ = load_data(core_args)
-    base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean"
-    cache_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/tucker_saved_segments"
-    saved_universal_prepend_init_segment = "/Users/lucastucker/base.np.npy"
+    # base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean"
+    # cache_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/tucker_saved_segments"
+    # saved_universal_prepend_init_segment = "/Users/lucastucker/base.np.npy"
+    # base_dir = "/mnt/c/Documents and Settings/judoc/Documents/GitHub/TTPure/src/data/LibriSpeech/dev-clean"
+    # cache_dir = "/mnt/c/Documents and Settings/judoc/Documents/GitHub/TTPure/tucker_attacks/10k_saved_segments"
+    # saved_universal_prepend_init_segment = "/mnt/c/Documents and Settings/judoc/Documents/GitHub/TTPure/base.np.npy"
+    
+    base_dir = r"C:/Users/judoc/Documents/GitHub/TTPure/tucker_attacks/data/dev-clean"
+    cache_dir = r"C:\Users\judoc\Documents\GitHub\TTPure\tucker_attacks\1k_saved_segments"
+    # saved_universal_prepend_init_segment = r"C:/Users/judoc/Documents/GitHub/TTPure/base.np.npy"
+    saved_universal_prepend_init_segment = r"C:\Users\judoc\Documents\GitHub\TTPure\tucker_attacks\trained_5k_25epoch.npy"
 
     # Use glob to recursively find all .flac files
     flac_files = glob.glob(os.path.join(base_dir, "**", "**", "*.flac"), recursive=True)
-
     # NOTE that batching is currently not supported!
-    training_data_size = 200
+    training_data_size = 1000
     data = [{"audio": path} for path in flac_files[:training_data_size]]
+    attack_args.attack_init = saved_universal_prepend_init_segment
     print(f"attack args are {attack_args}")
     # data = [{"audio": "/Users/lucastucker/book_audio.flac"}]
     # data = [{"audio": "/Users/lucastucker/lucas.flac"}]

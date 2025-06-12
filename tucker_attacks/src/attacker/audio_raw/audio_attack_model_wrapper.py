@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from whisper.audio import log_mel_spectrogram, pad_or_trim, N_SAMPLES, N_FRAMES, load_audio
+import random
 
 class AudioAttackModelWrapper(nn.Module):
     '''
@@ -44,7 +45,7 @@ class AudioAttackModelWrapper(nn.Module):
         X = self.audio_attack_segment.unsqueeze(0).expand(audio_vector.size(0), -1)
         ### EXPERIMENT ####
         # We fix a cutoff size to segment the audio vector
-        cutoff = 30000 # len(audio_vector[0])
+        cutoff = 30000 + random.randint(-30, 0)*1000 # len(audio_vector[0])
         # print(f"audio vector is itself of shape {audio_vector.shape}")
         attacked_audio_vector = torch.cat((audio_vector[:, :cutoff//2], X, audio_vector[:, cutoff//2:]), dim=1)
         # print(f"attacked audio vector is of shape {attacked_audio_vector.shape}")
@@ -107,6 +108,7 @@ class AudioAttackModelWrapper(nn.Module):
             for new_token in new_tokens:
             # new_token = 50514 # This is the 3 second token
                 new_token_tensor = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
+                new_token_tensor = new_token_tensor.to(self.device)
                 decoder_input_ids = torch.cat((decoder_input_ids, new_token_tensor), dim=1)
             # decoder_input_ids = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
             # print(f"decoder_input_ids are {decoder_input_ids}")

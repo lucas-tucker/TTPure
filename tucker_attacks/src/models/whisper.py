@@ -4,7 +4,10 @@ import editdistance
 from whisper.tokenizer import get_tokenizer
 
 
-CACHE_DIR = '/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/.cache'
+# CACHE_DIR = '/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/.cache'
+# CACHE_DIR = '/mnt/c/Documents and Settings/judoc/Documents/GitHub/TTPure/src/data/.cache'
+CACHE_DIR = r'C:/Users/judoc/Documents/GitHub/TTPure/tucker_attacks/src/data/.cache'
+
 
 MODEL_NAME_MAPPER = {
     'whisper-tiny'  : 'tiny.en',
@@ -22,7 +25,7 @@ class WhisperModel:
     '''
         Wrapper for Whisper ASR Transcription
     '''
-    def __init__(self, model_name='whisper-base-multi', device=torch.device('cpu'), task='transcribe', language='en'):
+    def __init__(self, model_name='whisper-base-multi', device=torch.device('cuda'), task='transcribe', language='en'):
         self.model_name = model_name
         self.model = whisper.load_model(MODEL_NAME_MAPPER[model_name], device=device, download_root=CACHE_DIR)
         self.task = task
