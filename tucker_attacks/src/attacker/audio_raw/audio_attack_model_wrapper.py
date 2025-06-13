@@ -44,7 +44,11 @@ class AudioAttackModelWrapper(nn.Module):
         X = self.audio_attack_segment.unsqueeze(0).expand(audio_vector.size(0), -1)
         ### EXPERIMENT ####
         # We fix a max cutoff size to segment the audio vector
-        max_cutoff = 35000 # len(audio_vector[0])
+        # print(f"At training forward prop, have audio shape {audio_vector.shape}")
+        max_cutoff = min(audio_vector.shape[-1], 16000 * 30) # len(audio_vector[0])
+        print(f"max_cutoff is {max_cutoff}")
+
+        # Get a random cutoff at which to insert the adversarial patch
         cutoff = torch.randint(max_cutoff, (1,)).item()
    
         attacked_audio_vector = torch.cat((audio_vector[:, :cutoff], X, audio_vector[:, cutoff:]), dim=1)

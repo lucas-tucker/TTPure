@@ -21,7 +21,6 @@ from src.attacker.selector import select_train_attacker
 # from src.tools.saving import base_path_creator, attack_base_path_creator_train
 
 if __name__ == "__main__":
-
     # get command line arguments
     core_args, c = core_args()
     attack_args, a = attack_args()
@@ -48,7 +47,8 @@ if __name__ == "__main__":
 
     # load training data
     # data, _ = load_data(core_args)
-    base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/LibriSpeech/dev-clean"
+    # base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/librispeech-dev-clean/dev-clean"
+    base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/librispeech-long/dev-clean"
     cache_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/tucker_saved_segments"
     saved_universal_prepend_init_segment = "/Users/lucastucker/base.np.npy"
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     flac_files = glob.glob(os.path.join(base_dir, "**", "**", "*.flac"), recursive=True)
 
     # NOTE that batching is currently not supported!
-    training_data_size = 2
+    training_data_size = 5
     data = [{"audio": path} for path in flac_files[:training_data_size]]
     print(f"attack args are {attack_args}")
     # data = [{"audio": "/Users/lucastucker/book_audio.flac"}]

@@ -52,6 +52,7 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
             audio = audio[0].to(self.device)
 
             # Forward pass
+            print(f"audio is of shape {audio.shape}")
             tmp_logits = self.audio_attack_model(audio, self.whisper_model)
             print(f"logits have shape {tmp_logits.shape}")
             # print(tmp_logits.shape)
@@ -87,9 +88,9 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
     @staticmethod
     def _prep_dl(data, bs=16, shuffle=False):
         '''
-        Create batch of audio vectors
+        Creates a torch DataLoader object given a list of paths to .flac files, where the audio tensors are padded
+        such that they are all the length of the longest tensor, and batched according to the bs parameter.
         '''
-
         print('Loading and batching audio files')
         audio_vectors = []
         for d in tqdm(data):
@@ -113,24 +114,20 @@ class AudioAttackEmbed: # AudioAttackEmbed(AudioBaseAttacker):
 
     def _get_tgt_tkn_id(self):
         if self.attack_args.attack_token == 'eot':
-            try:
-                # NOTE: Place arbitrary token here  
-                # eot_id = 19186 # self.whisper_model.tokenizer.eot
-                eot_id = self.whisper_model.tokenizer.eot
-            except:
-                # canary model
-                eot_id = self.whisper_model.tokenizer.eos_id
-            return eot_id
+            # NOTE: Place arbitrary token here  
+            # tgt_id = 19186 # expletive
+            tgt_id = self.whisper_model.tokenizer.eot
+            return tgt_id
         elif self.attack_args.attack_token == 'transcribe':
             return self.whisper_model.tokenizer.transcribe
 
     def train_process(self, train_data, cache_dir):
+        """
+        This method takes a list of audio paths and a path to a cache directory, and constructs the adversarial
+        embedding segment while storing intermediate results in the cache directory.
+        """
 
         fpath = f'{cache_dir}/prepend_attack_models'
-        # if not os.path.isdir(fpath):
-        #     os.mkdir(fpath)
-
-        # train_data needs to be list of dictionaries each with "audio": audio_file_path
         train_dl = self._prep_dl(train_data, bs=self.attack_args.bs, shuffle=True)
 
         for epoch in range(self.attack_args.max_epochs):
