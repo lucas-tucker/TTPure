@@ -46,12 +46,12 @@ class AudioAttackModelWrapper(nn.Module):
         # We fix a max cutoff size to segment the audio vector
         # print(f"At training forward prop, have audio shape {audio_vector.shape}")
         max_cutoff = min(audio_vector.shape[-1], 16000 * 30) # len(audio_vector[0])
-        print(f"max_cutoff is {max_cutoff}")
+        # print(f"max_cutoff is {max_cutoff}")
 
         # Get a random cutoff at which to insert the adversarial patch
         cutoff = torch.randint(max_cutoff, (1,)).item()
    
-        attacked_audio_vector = torch.cat((audio_vector[:, :cutoff], X, audio_vector[:, cutoff:]), dim=1)
+        attacked_audio_vector = torch.cat((audio_vector[:, :cutoff], X, audio_vector[:, cutoff:max_cutoff]), dim=1)
         # print(f"attacked audio vector is of shape {attacked_audio_vector.shape}")
         ### END OF EXPERIMENT ###
 
@@ -75,7 +75,7 @@ class AudioAttackModelWrapper(nn.Module):
         padded_mel = log_mel_spectrogram(audio, n_mels, padding=N_SAMPLES)
         # ADDED EXPERIMENT
         seek = 0
-        segment_size = 800
+        segment_size = 3000 # Increased segment size since we have longer audio
         padded_mel = padded_mel[:, :, seek : seek + segment_size]
         # print(f"truncated mel size is {padded_mel.shape}")
         # END OF EXP
@@ -105,12 +105,8 @@ class AudioAttackModelWrapper(nn.Module):
             return torch.mean(torch.stack(pred_probs), dim=0) 
         else:
             ######### ADD THE 5 SECOND TOKEN AS THE LAST LOGIT SLICE FROM THE OUTPUT #########
-            # new_tokens = [7835, 538, 3693, 538, 436, 1361, 281, 452, 1159, 11]
-            new_tokens = []
-            # new_token = 50364
-            new_tokens = [50364]
+            new_tokens = [50364] # []
             for new_token in new_tokens:
-            # new_token = 50514 # This is the 3 second token
                 new_token_tensor = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
                 decoder_input_ids = torch.cat((decoder_input_ids, new_token_tensor), dim=1)
             # decoder_input_ids = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
