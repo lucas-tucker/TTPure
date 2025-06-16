@@ -43,20 +43,20 @@ if __name__ == "__main__":
     # else:
     #     device = get_default_device(core_args.gpu_id)
     # print(f"device is {device}")
-    device = "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # load training data
     # data, _ = load_data(core_args)
     # base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/librispeech-dev-clean/dev-clean"
-    base_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/librispeech-long/dev-clean"
-    cache_dir = "/Users/lucastucker/misc-cs/TTPure/tucker_attacks/tucker_saved_segments"
-    saved_universal_prepend_init_segment = "/Users/lucastucker/base.np.npy"
+    base_dir = "/home-nfs/lwtucker/TT-Patch/tucker_attacks/src/data/librispeech-long/dev-clean" # "~/TT-Patch/tucker_attacks/src/data/librispeech-long/dev-clean"
+    cache_dir = "/home-nfs/lwtucker/TT-Patch/tucker_attacks/tucker_saved_segments"
+    saved_universal_prepend_init_segment = "/home-nfs/lwtucker/TT-Patch/tucker_attacks/audio_attack_segments/base.np.npy" # "~/TT-Patch/tucker_attacks/audio_attack_segments/base.np.npy"
 
     # Use glob to recursively find all .flac files
     flac_files = glob.glob(os.path.join(base_dir, "**", "**", "*.flac"), recursive=True)
 
     # NOTE that batching is currently not supported!
-    training_data_size = 500
+    training_data_size = 850
     data = [{"audio": path} for path in flac_files[:training_data_size]]
     print(f"attack args are {attack_args}")
     # data = [{"audio": "/Users/lucastucker/book_audio.flac"}]

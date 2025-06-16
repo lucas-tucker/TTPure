@@ -107,7 +107,7 @@ class AudioAttackModelWrapper(nn.Module):
             ######### ADD THE 5 SECOND TOKEN AS THE LAST LOGIT SLICE FROM THE OUTPUT #########
             new_tokens = [50364] # []
             for new_token in new_tokens:
-                new_token_tensor = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
+                new_token_tensor = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64, device=self.device) + new_token
                 decoder_input_ids = torch.cat((decoder_input_ids, new_token_tensor), dim=1)
             # decoder_input_ids = torch.zeros(decoder_input_ids.shape[0], 1, dtype=torch.int64) + new_token
             # print(f"decoder_input_ids are {decoder_input_ids}")

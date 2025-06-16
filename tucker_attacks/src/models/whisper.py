@@ -3,8 +3,7 @@ import whisper
 import editdistance
 from whisper.tokenizer import get_tokenizer
 
-
-CACHE_DIR = '/Users/lucastucker/misc-cs/TTPure/tucker_attacks/src/data/.cache'
+CACHE_DIR = "~/TT-Patch/tucker_attacks/src/data/.cache"
 
 MODEL_NAME_MAPPER = {
     'whisper-tiny'  : 'tiny.en',
