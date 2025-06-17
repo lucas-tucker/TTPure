@@ -47,11 +47,12 @@ flac_files = glob.glob(os.path.join(test_dir, "**", "**", "*.flac"), recursive=T
 segment_size = int(16000 * (30 - 0.64))
 wers = []
 
+testing_data_size = 800
 THRESHOLD = 15
 num_empty_strings = 0
 num_under_threshold = 0
 
-for path in flac_files:
+for path in flac_files[:testing_data_size]:
     audio_sample, sr = torchaudio.load(path)
     audio_sample = audio_sample.squeeze().to(DEVICE) # Now a whisper-readable 1D tensor
     # Split the audio into 30s - 0.64s size segments
@@ -66,8 +67,8 @@ for path in flac_files:
                                tt_patch,
                                audio_sample[seek + breakpoint:seek + segment_size]), dim=0)
         seek += segment_size
-    # Append the rest of the audio
-    adv_audio = torch.cat((adv_audio, audio_sample[seek:]), dim=0)
+    # Optionally Append the rest of the audio
+    # adv_audio = torch.cat((adv_audio, audio_sample[seek:]), dim=0)
     with torch.no_grad():
         original_transcription = model.transcribe(audio_sample)["text"]
         adversarial_transcription = model.transcribe(adv_audio)["text"]
@@ -76,6 +77,9 @@ for path in flac_files:
     num_empty_strings += len(adversarial_transcription) == 0
 
     wers.append(wer(original_transcription.lower().strip(), adversarial_transcription.lower().strip()))
+    # print(f"Original transcript: {original_transcription}")
+    # print(f"Adversarial transcript: {adversarial_transcription}")
+    print(f"Avg WER thus far is {np.mean(wers)}")
 
 plt.hist(wers, density=True, bins=10)
 plt.ylabel("Frequency")
