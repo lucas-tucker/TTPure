@@ -55,7 +55,8 @@ wers = []
 ################################################
 filtered_8k_wers = []
 filtered_4k_wers = []
-gain_db = 20.0
+high_gain_wers = []
+resample_wers = []
 
 ################################################
 
@@ -64,9 +65,18 @@ THRESHOLD = 15
 num_empty_strings = 0
 num_under_threshold = 0
 
+################ TESTING PARAMS ################
+
+gain_db = 20.0
+resample_rate = 8000
+
 ############### TESTING FLAGS ###############
 mp3_test = True
-aac_test = True
+# aac_test = True
+low_pass_8k_test = True
+low_pass_4k_test = True
+high_gain_test = True
+resample_test = True
 #############################################
 
 
@@ -151,77 +161,72 @@ for path in flac_files[:testing_data_size]:
             
         #     wer_aac_v_adv_aac = wer(original_transcription_aac.lower().strip(), adversarial_transcription_aac.lower().strip())
         #     print(f"WER between aac and adversarial aac: {wer_aac_v_adv_aac}")
+        # 8kHz lowpass
+        if low_pass_8k_test:
+            if audio_sample.ndim == 1:
+                audio_sample = audio_sample.unsqueeze(0)
+            #LOWPASS
+            filtered_audio_sample_8k = F.lowpass_biquad(audio_sample, sample_rate=16000, cutoff_freq=8000).squeeze()
+            filtered_transcription_8k = model.transcribe(filtered_audio_sample_8k)["text"]
+            filtered_adv_audio_sample_8k = F.lowpass_biquad(adv_audio, sample_rate=16000, cutoff_freq=8000).squeeze()
+            filtered_adv_transcription_8k = model.transcribe(filtered_adv_audio_sample_8k)["text"]
 
-                    
+            # # add logging verbosity option here
+            # wer_orig_vs_8k = wer(original_transcription.lower().strip(), filtered_transcription_8k.lower().strip())
+            # print(f"WER between original and 8kHz filtered: {wer_orig_vs_8k}")
+            filtered_8k_wers.append(wer(filtered_transcription_8k.lower().strip(), filtered_adv_transcription_8k.lower().strip()))
+            print(f"Filtered 8kHz Avg WER thus far is {np.mean(filtered_8k_wers)}")
+
+        if low_pass_4k_test:
+            if audio_sample.ndim == 1:
+                audio_sample = audio_sample.unsqueeze(0)
+            # lowpass
+            filtered_audio_sample_4k = F.lowpass_biquad(audio_sample, sample_rate=16000, cutoff_freq=4000).squeeze()
+            filtered_transcription_4k = model.transcribe(filtered_audio_sample_4k)["text"]
+            filtered_adv_audio_sample_4k = F.lowpass_biquad(adv_audio, sample_rate=16000, cutoff_freq=4000).squeeze()
+            filtered_adv_transcription_4k = model.transcribe(filtered_adv_audio_sample_4k)["text"]
+            # # add logging verbosity option here
+            # wer_orig_vs_4k = wer(original_transcription.lower().strip(), filtered_transcription_4k.lower().strip())
+            # print(f"WER between original and 4kHz filtered: {wer_orig_vs_4k}")
+
+            filtered_4k_wers.append(wer(filtered_transcription_4k.lower().strip(), filtered_adv_transcription_4k.lower().strip()))
+            print(f"Filtered 4kHz Avg WER thus far is {np.mean(filtered_4k_wers)}")
+
+
+        if high_gain_test:
+            high_gain_audio = T.Vol(gain_db, gain_type='db')(audio_sample).squeeze()
+            high_gain_transcription = model.transcribe(high_gain_audio)["text"]
+            high_gain_adv_audio = T.Vol(gain_db, gain_type='db')(adv_audio).squeeze()
+            high_gain_adv_transcription = model.transcribe(high_gain_adv_audio)["text"]
+
+            # # add logging verbosity option here
+            # wer_high_gain_vs_orig = wer(original_transcription.lower().strip(), high_gain_transcription.lower().strip())
+            # print(f"WER between original and high gain: {wer_high_gain_vs_orig}")
+            high_gain_wers.append(wer(high_gain_transcription.lower().strip(), high_gain_adv_transcription.lower().strip()))
+            print(f"High Gain Avg WER thus far is {np.mean(high_gain_wers)}")
+
+        if resample_test:
+            resampler = T.Resample(orig_freq=16000, new_freq=resample_rate).to(DEVICE)
+            resampled_audio = resampler(audio_sample).squeeze()
+            resampled_transcription = model.transcribe(resampled_audio)["text"]
+            resampled_adv_audio = resampler(adv_audio).squeeze()
+            resampled_adv_transcription = model.transcribe(resampled_adv_audio)["text"]
+
+            # # add logging verbosity option here
+            # wer_resampled_vs_orig = wer(original_transcription.lower().strip(), resampled_8k_transcription.lower().strip())
+            # print(f"WER between original and resampled 8kHz: {wer_resampled_vs_orig}")
+            resample_wers.append(wer(resampled_transcription.lower().strip(), resampled_adv_transcription.lower().strip()))
+            print(f"Resampled at {resample_rate}hz Avg WER thus far is {np.mean(resample_wers)}")
+        
+        
         # ################################################################################################
-        # # 8kHz lowpass
-        # if audio_sample.ndim == 1:
-        #     audio_sample = audio_sample.unsqueeze(0)
-        # #LOWPASS
-        # filtered_audio_sample_8k = F.lowpass_biquad(audio_sample, sample_rate=16000, cutoff_freq=8000).squeeze()
-        # filtered_transcription_8k = model.transcribe(filtered_audio_sample_8k)["text"]
-        # #HIGH GAIN
-        # high_gain_audio = T.Vol(gain_db, gain_type='db')(audio_sample).squeeze()
-        # high_gain_transcription = model.transcribe(high_gain_audio)["text"]
-        # #RESAMPLED
-        # resampler = T.Resample(orig_freq=16000, new_freq=8000).to(DEVICE)
-        # resampled_8k_audio = resampler(audio_sample).squeeze()
-        # resampled_8k_transcription = model.transcribe(resampled_8k_audio)["text"]
-        
-        # if adv_audio.ndim == 1:
-        #     adv_audio = adv_audio.unsqueeze(0)
-        # #LOWPASS
-        # filtered_adv_audio_8k = F.lowpass_biquad(adv_audio, sample_rate=16000, cutoff_freq=8000).squeeze()
-        # filtered_adv_transcription_8k = model.transcribe(filtered_adv_audio_8k)["text"]
-        # #HIGH GAIN
-        # high_gain_adv_audio = T.Vol(gain_db, gain_type='db')(adv_audio).squeeze()
-        # high_gain_adv_transcription = model.transcribe(high_gain_adv_audio)["text"]
-        # #RESAMPLED
-        # resampled_8k_adv_audio = resampler(adv_audio).squeeze()
-        # resampled_8k_adv_transcription = model.transcribe(resampled_8k_adv_audio)["text"]
-        
 
-        # # 4kHz lowpass
-        # filtered_audio_sample_4k = F.lowpass_biquad(audio_sample, sample_rate=16000, cutoff_freq=4000).squeeze()
-        # filtered_adv_audio_4k = F.lowpass_biquad(adv_audio, sample_rate=16000, cutoff_freq=4000).squeeze()
+        num_under_threshold += len(adversarial_transcription) <= THRESHOLD
+        num_empty_strings += len(adversarial_transcription) == 0
 
-        # filtered_transcription_4k = model.transcribe(filtered_audio_sample_4k)["text"]
-        # filtered_adv_transcription_4k = model.transcribe(filtered_adv_audio_4k)["text"]
-        
-        
-        # ################################################################################################
+        wers.append(wer(original_transcription.lower().strip(), adversarial_transcription.lower().strip()))
+        print(f"Avg WER thus far is {np.mean(wers)}")
 
-        # num_under_threshold += len(adversarial_transcription) <= THRESHOLD
-        # num_empty_strings += len(adversarial_transcription) == 0
-
-        # wers.append(wer(original_transcription.lower().strip(), adversarial_transcription.lower().strip()))
-        # print(f"Avg WER thus far is {np.mean(wers)}")
-
-        # filtered_8k_wers.append(wer(filtered_transcription_8k.lower().strip(), filtered_adv_transcription_8k.lower().strip()))
-        # print(f"Filtered 8kHz Avg WER thus far is {np.mean(filtered_8k_wers)}")
-
-        # filtered_4k_wers.append(wer(filtered_transcription_4k.lower().strip(), filtered_adv_transcription_4k.lower().strip()))
-        # print(f"Filtered 4kHz Avg WER thus far is {np.mean(filtered_4k_wers)}")
-
-        # # Compare original transcription to low-pass filtered transcriptions
-        # wer_orig_vs_8k = wer(original_transcription.lower().strip(), filtered_transcription_8k.lower().strip())
-        # wer_orig_vs_4k = wer(original_transcription.lower().strip(), filtered_transcription_4k.lower().strip())
-        # print(f"WER between original and 8kHz filtered: {wer_orig_vs_8k}")
-        # print(f"WER between original and 4kHz filtered: {wer_orig_vs_4k}")
-        # # print(f"Original transcription: {original_transcription}")
-        # # print(f"8kHz filtered transcription: {filtered_transcription_8k}")
-        # # print(f"4kHz filtered transcription: {filtered_transcription_4k}")
-        # # Compare resampled to original
-        # wer_resampled_vs_orig = wer(original_transcription.lower().strip(), resampled_8k_transcription.lower().strip())
-        # print(f"WER between original and resampled 8kHz: {wer_resampled_vs_orig}")
-        
-        # # compare adversarial resampled to 8k resampled
-        # wer_resampled_adv_vs_8k = wer(resampled_8k_transcription.lower().strip(), resampled_8k_adv_transcription.lower().strip())
-        # print(f"WER between resampled 8kHz and adversarial resampled 8kHz: {wer_resampled_adv_vs_8k}")
-        
-        # # Compare high gain to original
-        # wer_high_gain_vs_orig = wer(original_transcription.lower().strip(), high_gain_transcription.lower().strip())
-        # print(f"WER between original and high gain: {wer_high_gain_vs_orig}")
 
 plt.hist(wers, density=True, bins=10)
 plt.ylabel("Frequency")
